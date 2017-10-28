@@ -1,6 +1,6 @@
 {
   "name": "bitcoin_simulated_exchange",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Uses Cryptocurrency exchange rate APIs to create a game and visualization for trading cryptocurrencies.",
   "main": "server.js",
   "scripts": {
@@ -25,5 +25,9 @@
   "bugs": {
     "url": "https://github.com/rbreeze/bitcoin_simulated_exchange/issues"
   },
-  "homepage": "https://github.com/rbreeze/bitcoin_simulated_exchange#readme"
+  "homepage": "https://github.com/rbreeze/bitcoin_simulated_exchange#readme",
+  "dependencies": {
+    "express": "^4.16.2",
+    "mongoose": "^4.12.4"
+  }
 }
