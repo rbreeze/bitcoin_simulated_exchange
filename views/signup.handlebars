@@ -1,0 +1,20 @@
+<form name="signUpForm" id="signUpForm" class="form-signup form-signin" method="POST" action="/signup">
+  <h2 class="form-signin-heading">Sign Up</h2>
+  <label for="inputUsername" class="sr-only">Username</label>
+  <input type="text" name="username" id="inputUsername" class="form-control top" placeholder="Username" required autofocus>
+  <label for="inputPassword" class="sr-only">Password</label>
+  <input id="inputPassword" type="password" class="form-control middle" placeholder="Password" required>
+  <label for="inputConfirm" class="sr-only">Confirm Password</label>
+  <input name="password" id="inputConfirm" type="password" class="form-control bottom" placeholder="Confirm Password" required>
+
+  {{#if message}}
+  <div class="alert alert-success" role="alert">{{ message }}</div>
+  {{/if}}
+
+  {{#if error}}
+  <div class="alert alert-danger" role="alert">{{ error }}</div>
+  {{/if}}
+
+  <button type="submit" class="btn btn-lg btn-primary btn-block">Sign Up</button>
+
+</form>
