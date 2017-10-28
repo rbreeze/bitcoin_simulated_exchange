@@ -28,6 +28,7 @@
   "homepage": "https://github.com/rbreeze/bitcoin_simulated_exchange#readme",
   "dependencies": {
     "express": "^4.16.2",
+    "express-handlebars": "^3.0.0",
     "mongoose": "^4.12.4"
   }
 }
