@@ -1,0 +1,29 @@
+{
+  "name": "bitcoin_simulated_exchange",
+  "version": "1.0.0",
+  "description": "Uses Cryptocurrency exchange rate APIs to create a game and visualization for trading cryptocurrencies.",
+  "main": "server.js",
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rbreeze/bitcoin_simulated_exchange.git"
+  },
+  "keywords": [
+    "NodeJS",
+    "Bitcoin",
+    "Cryptocurrencies",
+    "Simulation",
+    "Game",
+    "MongoDB",
+    "Trading"
+  ],
+  "author": "Remington Breeze, Ian McDonald",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rbreeze/bitcoin_simulated_exchange/issues"
+  },
+  "homepage": "https://github.com/rbreeze/bitcoin_simulated_exchange#readme"
+}
