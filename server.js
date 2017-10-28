@@ -111,3 +111,72 @@ app.post('/signup', function(req, res) {
     }
   });
 });
+
+// API for getting and updating current user's Liquid Assets quantity
+app.post('/api/liquidAssets', function(req, res) {
+  if (!req.session.user)
+    res.send({ error: "No user is currently logged in." });
+  req.session.user.liquidAssets = req.liquidAssets; 
+  User.findOne({ username: req.session.user.username }, function(err, data) {
+    if (err)
+      res.status(500).send(err);
+    data.liquidAssets = req.session.user.liquidAssets;
+    data.save(function(err, data) {
+      if (err)
+        res.status(500).send(err);
+      res.send("Successfully updated.");
+    })
+  });
+}); 
+
+app.get('/api/liquidAssets', function(req, res) {
+  if (!req.session.user)
+    res.send({ error: "No user is currently logged in." });
+  req.send({ liquidAssets: req.session.user.liquidAssets });
+}); 
+
+// API for getting and updating current user's transactions history
+app.post('/api/transactions', function(req, res) {
+  if (!req.session.user)
+    res.send({ error: "No user is currently logged in." });
+  req.session.user.transactions.push(req.transaction);
+  User.findOne({ username: req.session.user.username }, function(err, data) {
+    if (err)
+      res.status(500).send(err);
+    data.transactions = req.session.user.transactions;
+    data.save(function(err, data) {
+      if (err)
+        res.status(500).send(err);
+      res.send("Successfully updated.");
+    })
+  });
+});
+
+app.get('/api/transactions', function(req, res) {
+  if (!req.session.user)
+    res.send({ error: "No user is currently logged in." });
+  res.send({ transactions: req.session.user.transactions });
+})
+
+// API for getting and updating current user's assets list
+app.post('/api/assets', function(req, res) {
+  if (!req.session.user)
+    res.send({ error: "No user is currently logged in." });
+  req.session.user.assets = req.assets;
+  User.findOne({ username: req.session.user.username }, function(err, data) {
+    if (err)
+      res.status(500).send(err);
+    data.assets = req.session.user.assets;
+    data.save(function(err, data) {
+      if (err)
+        res.status(500).send(err);
+      res.send("Successfully updated.");
+    })
+  });
+});
+
+app.get('/api/assets', function(req, res) {
+  if (!req.session.user)
+    res.send({ error: "No user is currently logged in." });
+  res.send({ assets: req.session.user.assets });
+});
