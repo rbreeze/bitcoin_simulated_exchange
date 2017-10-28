@@ -40,7 +40,7 @@ var userSchema = new mongoose.Schema({
 });
 
 var Transaction = mongoose.model('Transaction', transactionSchema);
-var Transaction = mongoose.model('Asset', assetSchema);
+var Asset = mongoose.model('Asset', assetSchema);
 var User = mongoose.model('User', userSchema);
 
 // Configure the session variable.
