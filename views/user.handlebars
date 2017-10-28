@@ -1,1 +1,46 @@
-{{ user }}
+<div class="container">
+
+  <div class="col-md-4">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <h2> <span class="glyphicon glyphicon-user"></span> {{ user.username }} </h2>
+        <table class="table">
+          <tr> 
+            <td> <b>Net Worth:</b> </td>
+            <td> <span class="glyphicon glyphicon-credit-card"></span> ${{ user.netWorth }} </td> 
+          </tr>
+
+          <tr> 
+            <td> <b>Liquid Assets:</b> </td>
+            <td> <span class="glyphicon glyphicon-credit-card"></span> ${{ user.liquidAssets }} </td> 
+          </tr>
+
+        </table>
+        <a class="btn btn-primary" href="#" role="button">Refresh</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <h2> <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span> Buy or Sell Coins </h2>
+        <table class="table">
+          {{#each coins}}
+            <tr> 
+              <td> <b>{{ title }}</b> </td>
+              <td> <span class="glyphicon glyphicon glyphicon-piggy-bank"></span> {{ tag }} </td> 
+            </tr>
+          {{/each}}
+        </table>
+        <form class="form-buy-sell">
+          <input class="form-control" type="text" name="tag" placeholder="Symbol"></input>
+          <input class="form-control" type="text" name="quantity" placeholder="Quantity"></input>
+          <a class="btn btn-primary" href="/login" role="button">Buy</a>
+          <a class="btn btn-default" href="/signup" role="button">Sell</a>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>

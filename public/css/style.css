@@ -66,3 +66,32 @@
   -webkit-background-size: 8px 10px;
   background-size: 8px 10px;
 }
+
+.form-buy-sell {
+  display: block;
+  margin: 0 auto;
+  margin-top: 15px;
+  text-align: center;
+}
+
+.form-buy-sell input {
+  width: 30%;
+  display: inline-block;
+}
+
+/* Panel Styles */
+.panel {
+  margin: 0 auto;
+  max-width: 400px;
+  margin-bottom: 20px;
+}
+
+.panel h2 {
+  margin-top: 0px;
+}
+
+/* Table Styles */
+.table {
+  max-width: 350px; 
+  margin: 0 auto;
+}

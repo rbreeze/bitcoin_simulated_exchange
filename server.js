@@ -1,3 +1,7 @@
+/* **************
+       Setup 
+ ************** */
+
 // Include dependencies.
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -13,6 +17,56 @@ console.log('Server is running on port 3000');
 
 // Connect to local mongodb instance. 
 mongoose.connect('mongodb://localhost:27017');
+
+// Define coins to use.
+var globalCoins =  {
+  Bitcoin: { 
+    title: "Bitcoin",
+    tag: "BTC"
+  }, Ethereum: { 
+    title: "Ethereum", 
+    tag: "ETH" 
+  }, Ripple: {
+    title: "Ripple",
+    tag: "XRP"
+  }, BitcoinCash: {
+    title: "Bitcoin Cash",
+    tag: "BCH"
+  }, Litecoin: {
+    title: "Litecoin",
+    tag: "LTC"
+  }, Dash: {
+    title: "Dash",
+    tag: "DASH"
+  }, NEM: {
+    title: "NEM",
+    tag: "XEM"
+  }, NEO: {
+    title: "NEO",
+    tag: "NEO"
+  }, Monero: {
+    title: "Monero",
+    tag: "XMR"
+  }, EthereumClassic: {
+    title: "Ethereum Classic",
+    tag: "ETC"
+  }, Zcash: {
+    title: "Zcash",
+    tag: "ZEC"    
+  }, StellarLumens: {
+    title: "StellarLumens",
+    tag: "XLM"
+  }, Lisk: {
+    title: "Lisk",
+    tag: "LSK"
+  }, Stratis: {
+    title: "Stratis",
+    tag: "STRAT"
+  }, Waves: {
+    title: "Waves",
+    tag: "WAVES"   
+  }
+}
 
 // Define User and Asset schemas and models for Mongoose.
 var transactionSchema = new mongoose.Schema({
@@ -60,22 +114,44 @@ app.use(express.static(__dirname + '/public'));
 // Use the views directory to host Handlebar views.
 app.set('/views', __dirname + '/views');
 
+/* **************
+       Routes 
+ ************** */
+
 // Serve the home page.
 app.get('/', function(req, res) {
-  res.render('index', { title: "Home" });
+  res.render('index', { user: req.session.user, title: "Home" });
 });
 
 // Serve the login page.
 app.get('/login', function(req, res) {
   if (req.session.user && req.session.auth)
-    res.redirect("/user/" + req.session.user._id);
+    res.redirect("/user");
   else
     res.render("login", { title: "Log In"});
+});
+
+// Log Out method.
+app.get('/logout', function(req, res) {
+  req.session.destroy(); 
+  res.redirect("/"); 
 });
 
 // Serve the signup page.
 app.get('/signup', function(req, res) {
   res.render('signup', { title: "Sign Up" });
+});
+
+// Serve the charts page. 
+app.get('/charts', function(req, res) {
+  res.render('charts', { user: req.session.user, title: "Charts"});
+})
+
+// Serve a user profile page.
+app.get('/user', function(req, res) {
+  if (!req.session.user)
+    res.redirect("/login");
+  res.render('user', { user: req.session.user, title: req.session.user.username, coins: globalCoins });
 })
 
 // Handle a login request.
@@ -88,7 +164,7 @@ app.post('/login', function(req, res) {
     else if (passwordHash.verify(req.body.password, user.password)) {
       req.session.user = user;
       req.session.auth = true;
-      res.render("user", { user : user });
+      res.redirect("/user");
     } else {
       res.render("login", { error: "Incorrect password." });
     }
@@ -111,6 +187,10 @@ app.post('/signup', function(req, res) {
     }
   });
 });
+
+/* **************
+       API 
+ ************** */
 
 // API for getting and updating current user's Liquid Assets quantity
 app.post('/api/liquidAssets', function(req, res) {
