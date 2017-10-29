@@ -7,7 +7,7 @@
         <table class="table">
           <tr> 
             <td> <b>Net Worth:</b> </td>
-            <td> <span class="glyphicon glyphicon-credit-card"></span> ${{ user.netWorth }} </td> 
+            <td> <span class="glyphicon glyphicon-credit-card"></span> ${{ networth }} </td> 
           </tr>
 
           <tr> 
@@ -30,17 +30,36 @@
             <tr> 
               <td> <b>{{ title }}</b> </td>
               <td> <span class="glyphicon glyphicon glyphicon-piggy-bank"></span> {{ tag }} </td> 
+              <td> ${{ price }} </td>
             </tr>
           {{/each}}
         </table>
-        <form class="form-buy-sell">
+        <form class="form-buy-sell" method="POST" name="buy-sell">
           <input class="form-control" type="text" name="tag" placeholder="Symbol"></input>
           <input class="form-control" type="text" name="quantity" placeholder="Quantity"></input>
-          <a class="btn btn-primary" href="/login" role="button">Buy</a>
-          <a class="btn btn-default" href="/signup" role="button">Sell</a>
+          <input type="submit" value="Buy" class="btn btn-primary" href="/login" role="button" onclick="setBuy()"></input>
+          <input type="submit" value="Sell" class="btn btn-default" href="/signup" role="button" onclick="setSell()"></input>
         </form>
+
+        {{#if message}}
+        <div class="alert alert-success" role="alert">{{ message }}</div>
+        {{/if}}
+
       </div>
     </div>
   </div>
 
 </div>
+
+<script>
+
+function setSell() {
+  document.forms["buy-sell"].action = "/api/sell"; 
+}
+
+function setBuy() {
+  document.forms["buy-sell"].action = "/api/buy"; 
+}
+
+</script>
+

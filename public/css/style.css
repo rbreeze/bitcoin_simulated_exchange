@@ -79,6 +79,10 @@
   display: inline-block;
 }
 
+.form-buy-sell input[type="submit"] {
+  width: 50px;
+}
+
 /* Panel Styles */
 .panel {
   margin: 0 auto;
@@ -88,6 +92,11 @@
 
 .panel h2 {
   margin-top: 0px;
+}
+
+.panel .alert {
+  margin-bottom: 10px;
+  margin-top: 15px;
 }
 
 /* Table Styles */

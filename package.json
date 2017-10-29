@@ -27,10 +27,14 @@
   },
   "homepage": "https://github.com/rbreeze/bitcoin_simulated_exchange#readme",
   "dependencies": {
+    "async": "^2.5.0",
+    "babel": "^6.23.0",
     "express": "^4.16.2",
     "express-handlebars": "^3.0.0",
     "express-session": "^1.15.6",
+    "handlebars-intl": "^1.1.2",
     "mongoose": "^4.12.4",
-    "password-hash": "^1.2.2"
+    "password-hash": "^1.2.2",
+    "request": "^2.83.0"
   }
 }

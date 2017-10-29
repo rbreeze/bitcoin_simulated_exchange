@@ -8,6 +8,8 @@ const bodyParser = require('body-parser');
 const expressHandlebars = require('express-handlebars');
 const passwordHash = require('password-hash');
 const mongoose = require('mongoose');
+const request = require('request');
+const async = require('async')
 const app = express(); 
 var session = require('express-session');
 
@@ -20,53 +22,55 @@ mongoose.connect('mongodb://localhost:27017');
 
 // Define coins to use.
 var globalCoins =  {
-  Bitcoin: { 
+  BTC: { 
     title: "Bitcoin",
     tag: "BTC"
-  }, Ethereum: { 
+  }, ETH: { 
     title: "Ethereum", 
     tag: "ETH" 
-  }, Ripple: {
+  }, XRP: {
     title: "Ripple",
     tag: "XRP"
-  }, BitcoinCash: {
+  }, BCH: {
     title: "Bitcoin Cash",
     tag: "BCH"
-  }, Litecoin: {
+  }, LTC: {
     title: "Litecoin",
     tag: "LTC"
-  }, Dash: {
+  }, DASH: {
     title: "Dash",
     tag: "DASH"
-  }, NEM: {
+  }, XEM: {
     title: "NEM",
     tag: "XEM"
   }, NEO: {
     title: "NEO",
     tag: "NEO"
-  }, Monero: {
+  }, XMR: {
     title: "Monero",
     tag: "XMR"
-  }, EthereumClassic: {
+  }, ETC: {
     title: "Ethereum Classic",
     tag: "ETC"
-  }, Zcash: {
+  }, ZEC: {
     title: "Zcash",
     tag: "ZEC"    
-  }, StellarLumens: {
+  }, XLM: {
     title: "StellarLumens",
     tag: "XLM"
-  }, Lisk: {
+  }, LSK: {
     title: "Lisk",
     tag: "LSK"
-  }, Stratis: {
+  }, STRAT: {
     title: "Stratis",
     tag: "STRAT"
-  }, Waves: {
+  }, WAVES: {
     title: "Waves",
     tag: "WAVES"   
   }
 }
+
+var tags = ["BTC", "ETH", "XRP", "BCH", "LTC", "DASH", "XEM", "NEO", "XMR", "ETC", "ZEC", "XLM", "LSK", "STRAT", "WAVES"];
 
 // Define User and Asset schemas and models for Mongoose.
 var transactionSchema = new mongoose.Schema({
@@ -80,7 +84,6 @@ var transactionSchema = new mongoose.Schema({
 var assetSchema = new mongoose.Schema({
   name : {type : String, default: 'Bitcoin'},
   tag : {type : String, default: 'BTC'},
-  price: {type : Number, default: 0},
   quantity: {type : Number, default: 0}
 });
 
@@ -89,8 +92,7 @@ var userSchema = new mongoose.Schema({
   password: {type : String, default: ''},
   transactions: {type : [Transaction], default: ''},
   assets: {type : [Asset], default: ''},
-  liquidAssets: {type: Number, default: '10000'},
-  netWorth: {type: Number, default: '10000'}
+  liquidAssets: {type: Number, default: '10000'}
 });
 
 var Transaction = mongoose.model('Transaction', transactionSchema);
@@ -125,7 +127,8 @@ app.get('/', function(req, res) {
 
 // Serve the login page.
 app.get('/login', function(req, res) {
-  if (req.session.user && req.session.auth)
+  console.log("Login: " + req.session.user);
+  if (req.session.user != null)
     res.redirect("/user");
   else
     res.render("login", { title: "Log In"});
@@ -149,10 +152,34 @@ app.get('/charts', function(req, res) {
 
 // Serve a user profile page.
 app.get('/user', function(req, res) {
-  if (!req.session.user)
+  if (req.session.user) { 
+    var urls = generateUrls(); 
+    console.log("User: " + req.session.user);
+    async.map(urls, function(url, callback) {
+      request(url, function(err, response, body) {
+          callback(err, body);
+      })
+    }, function(err, data){
+      if(err) {
+          return console.error(err);
+      }
+      var prices = [];
+      for (var i = 0; i < tags.length; i++) {
+        data[i] = JSON.parse(data[i]);
+        prices.push(data[i].ticker.price);
+        globalCoins[tags[i]].price = data[i].ticker.price;
+      }
+      // var netWorth = 0; 
+      // for (var i = 0; i < req.session.user.assets.length; i++) {
+      //   netWorth += req.session.user.assets[i].quantity * globalCoins[req.session.user.assets[i].tag].price; 
+      // }
+      // netWorth += req.session.user.liquidAssets; 
+      res.render('user', { user: req.session.user, title: req.session.user.username, coins: globalCoins});
+    });
+  } else {
     res.redirect("/login");
-  res.render('user', { user: req.session.user, title: req.session.user.username, coins: globalCoins });
-})
+  }
+});
 
 // Handle a login request.
 app.post('/login', function(req, res) {
@@ -164,7 +191,11 @@ app.post('/login', function(req, res) {
     else if (passwordHash.verify(req.body.password, user.password)) {
       req.session.user = user;
       req.session.auth = true;
-      res.redirect("/user");
+      req.session.save(function(err) {
+        // session updated
+        console.log("Login post: " +req.session);
+        res.redirect('/user');
+      });
     } else {
       res.render("login", { error: "Incorrect password." });
     }
@@ -192,71 +223,112 @@ app.post('/signup', function(req, res) {
        API 
  ************** */
 
-// API for getting and updating current user's Liquid Assets quantity
-app.post('/api/liquidAssets', function(req, res) {
-  if (!req.session.user)
-    res.send({ error: "No user is currently logged in." });
-  req.session.user.liquidAssets = req.liquidAssets; 
-  User.findOne({ username: req.session.user.username }, function(err, data) {
-    if (err)
-      res.status(500).send(err);
-    data.liquidAssets = req.session.user.liquidAssets;
-    data.save(function(err, data) {
-      if (err)
-        res.status(500).send(err);
-      res.send("Successfully updated.");
-    })
-  });
-}); 
 
-app.get('/api/liquidAssets', function(req, res) {
+// Request to buy a cryptocurrency using user's liquid assets.
+app.post('/api/buy', function(req, res) {
   if (!req.session.user)
     res.send({ error: "No user is currently logged in." });
-  req.send({ liquidAssets: req.session.user.liquidAssets });
-}); 
+  var url = getRequestURL(req.body.tag);
+  request(url, function(err, response, data) {
+    data = JSON.parse(data);
+    req.body.quantity = parseFloat(req.body.quantity); 
+    var curValue = parseFloat(req.body.quantity) * parseFloat(data.ticker.price);
+    if (curValue <= req.session.user.liquidAssets) {
+      var result = isOwned(req.body.tag, req.session.user.assets); 
+      if (result.isOwned) {
+        req.session.user.assets[result.index].quantity += req.body.quantity; 
+      } else {
+        req.session.user.assets.push({ tag: req.body.tag, name: globalCoins[req.body.tag].title, quantity: req.body.quantity });
+      }
+      req.session.user.liquidAssets -= curValue; 
+      req.session.user.transactions.push({ name: globalCoins[req.body.tag].title, tag: req.body.tag, price: parseFloat(data.ticker.price), quantity: req.body.quantity, buy: true })
 
-// API for getting and updating current user's transactions history
-app.post('/api/transactions', function(req, res) {
-  if (!req.session.user)
-    res.send({ error: "No user is currently logged in." });
-  req.session.user.transactions.push(req.transaction);
-  User.findOne({ username: req.session.user.username }, function(err, data) {
-    if (err)
-      res.status(500).send(err);
-    data.transactions = req.session.user.transactions;
-    data.save(function(err, data) {
-      if (err)
-        res.status(500).send(err);
-      res.send("Successfully updated.");
-    })
-  });
-});
+      User.findOne({ username: req.session.user.username }, function(err, curUserData) {
+        if (result.isOwned)
+          curUserData.assets[result.index].quantity = req.session.user.assets[result.index].quantity;
+        else 
+          curUserData.assets.push(req.session.user.assets[result.index]);
+        curUserData.liquidAssets = Math.round(req.session.user.liquidAssets * 100) / 100;
+        curUserData.transactions.push({ name: globalCoins[req.body.tag].title, tag: req.body.tag, price: parseFloat(data.ticker.price), quantity: parseFloat(req.body.quantity), buy: false });
+        curUserData.save(function(err, data) {
+          if (err)
+            res.send(err);
+          res.render("user", { user: req.session.user, title: req.session.user.username, message: "Successfully purchased " + req.body.quantity + " " + req.body.tag, coins: globalCoins });
+        });
+      });
 
-app.get('/api/transactions', function(req, res) {
-  if (!req.session.user)
-    res.send({ error: "No user is currently logged in." });
-  res.send({ transactions: req.session.user.transactions });
-})
+    } else {
+      res.render("user", { user: req.session.user, title: req.session.user.username, message: "Not enough money to buy the " + req.body.tag + " you requested.", coins: globalCoins });
+    }
 
-// API for getting and updating current user's assets list
-app.post('/api/assets', function(req, res) {
-  if (!req.session.user)
-    res.send({ error: "No user is currently logged in." });
-  req.session.user.assets = req.assets;
-  User.findOne({ username: req.session.user.username }, function(err, data) {
-    if (err)
-      res.status(500).send(err);
-    data.assets = req.session.user.assets;
-    data.save(function(err, data) {
-      if (err)
-        res.status(500).send(err);
-      res.send("Successfully updated.");
-    })
   });
 });
 
-app.get('/api/assets', function(req, res) {
+// Request to sell an amount of user's owned cryptocurrency. 
+app.post('/api/sell', function(req, res) {
   if (!req.session.user)
     res.send({ error: "No user is currently logged in." });
-  res.send({ assets: req.session.user.assets });
+  var url = getRequestURL(req.body.tag);
+  request(url, function(err, response, data) {
+    data = JSON.parse(data);
+    req.body.quantity = parseFloat(req.body.quantity); 
+    var result = isOwned(req.body.tag, req.session.user.assets); 
+    if (result.isOwned && req.session.user.assets[result.index].quantity >= req.body.quantity) {
+      var curValue = parseFloat(data.ticker.price) * parseFloat(req.body.quantity); 
+      req.session.user.assets[result.index].quantity -= req.body.quantity; 
+      req.session.user.liquidAssets += curValue; 
+      req.session.user.transactions.push({ name: globalCoins[req.body.tag].title, tag: req.body.tag, price: parseFloat(data.ticker.price), quantity: parseFloat(req.body.quantity), buy: false });
+
+      User.findOne({ username: req.session.user.username }, function(err, curUserData) {
+        curUserData.assets[result.index].quantity = req.session.user.assets[result.index].quantity;
+        curUserData.liquidAssets = Math.round(req.session.user.liquidAssets * 100) / 100;
+        curUserData.transactions.push({ name: globalCoins[req.body.tag].title, tag: req.body.tag, price: parseFloat(data.ticker.price), quantity: parseFloat(req.body.quantity), buy: false });
+        curUserData.save(function(err, data) {
+          if (err)
+            res.send(err);
+          res.render("user", { user: req.session.user, title: req.session.user.username, message: "Successfully sold " + req.body.quantity + " " + req.body.tag, coins: globalCoins });
+        })
+      });
+
+    } else {
+      res.render("user", { user: req.session.user, title: req.session.user.username, message: "Not enough " + req.body.tag + " to sell the quantity requested.", coins: globalCoins });
+    }
+  });
 });
+
+// Request to get user's net worth
+app.get('/api/networth', function(req, res) {
+  if (!req.session.user)
+    res.send({ error: "No user is currently logged in." });
+  res.response(getNetWorth(req));
+});
+
+// Helper function to generate URL for Cryptonator API
+function getRequestURL(coinCode) {
+  return "https://api.cryptonator.com/api/ticker/" + coinCode + "-USD";
+}
+
+// Helper function to check if user owns a coin
+function isOwned(coinCode, assets) {
+  var isOwnedBool = false;
+  for(var i = 0; i < assets.length; i++) {
+    if(assets[i].tag == coinCode && assets[i].quantity > 0) {
+      isOwnedBool = true;
+      break;
+    }
+  }
+  return { isOwned: isOwnedBool, index: i };
+}
+
+function getNetWorth() {
+
+}
+
+function generateUrls() {
+  var urls = [];
+  for (var i = 0; i < tags.length; i++) {
+    urls.push(getRequestURL(tags[i]));
+  }
+  return urls; 
+}
+
