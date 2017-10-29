@@ -39,3 +39,7 @@ Thumbs.db
 # Node Modules folder #
 #######################
 node_modules
+
+# Bootstrap #
+#############
+bootstrap
