@@ -16,7 +16,22 @@
           </tr>
 
         </table>
-        <a class="btn btn-primary" href="#" role="button">Refresh</a>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <h2> <span class="glyphicon glyphicon-list-alt"></span> Transactions </h2>
+        <table class="table">
+          {{#each transactions}}
+            <tr> 
+              <td> <b>{{#if buy}}Bought{{else}}Sold{{/if}}</b> </td>
+              <td> {{ tag }} </td> 
+              <td> {{#if buy}}+{{else}}-{{/if}} ${{ quantity }} </td>
+            </tr>
+          {{/each}}
+
+        </table>
       </div>
     </div>
   </div>

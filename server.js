@@ -127,7 +127,6 @@ app.get('/', function(req, res) {
 
 // Serve the login page.
 app.get('/login', function(req, res) {
-  console.log("Login: " + req.session.user);
   if (req.session.user != null)
     res.redirect("/user");
   else
@@ -154,7 +153,6 @@ app.get('/charts', function(req, res) {
 app.get('/user', function(req, res) {
   if (req.session.user) { 
     var urls = generateUrls(); 
-    console.log("User: " + req.session.user);
     async.map(urls, function(url, callback) {
       request(url, function(err, response, body) {
           callback(err, body);
@@ -174,7 +172,7 @@ app.get('/user', function(req, res) {
       //   netWorth += req.session.user.assets[i].quantity * globalCoins[req.session.user.assets[i].tag].price; 
       // }
       // netWorth += req.session.user.liquidAssets; 
-      res.render('user', { user: req.session.user, title: req.session.user.username, coins: globalCoins});
+      res.render('user', { user: req.session.user, title: req.session.user.username, coins: globalCoins, transactions: req.session.user.transactions });
     });
   } else {
     res.redirect("/login");
@@ -193,7 +191,6 @@ app.post('/login', function(req, res) {
       req.session.auth = true;
       req.session.save(function(err) {
         // session updated
-        console.log("Login post: " +req.session);
         res.redirect('/user');
       });
     } else {
@@ -213,7 +210,7 @@ app.post('/signup', function(req, res) {
       user.save(function(err, data) {
         if (err)
           res.send(err);
-        res.render("login", { title: "Successful Sign Up", message: "Please log in with your new credentials." });
+        res.render('user', { user: req.session.user, title: req.session.user.username, coins: globalCoins, transactions: req.session.user.transactions });
       });
     }
   });
